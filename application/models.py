@@ -5,6 +5,7 @@ Models for the application.
 import datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 from . import db
 
@@ -31,6 +32,7 @@ class UserType(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True, nullable=False)
+    users = relationship('User')
 
 
 class File(db.Model):
@@ -41,16 +43,16 @@ class File(db.Model):
     user = Column(Integer, ForeignKey('user.id'))
     file_name = Column(String(100), nullable=False)
     file_path = Column(String(200), nullable=False)
+    file_access_permission = Column(Integer,
+                        ForeignKey('file_permission.id'), nullable=False)
     last_updated = Column(DateTime, unique=True, nullable=False,
                                  default=datetime.datetime.utcnow)
 
 
-class Permission(db.Model):
+class FilePermission(db.Model):
     """Model for user type permissions"""
-    __tablename__ = 'permission'
+    __tablename__ = 'file_permission'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    user_type = Column(Integer, ForeignKey('usertype.id'),
-                                nullable=False, unique=True)
-    permissions = Column(String(20), nullable=False)
+    name = Column(String(20), unique=True, nullable=False)
 

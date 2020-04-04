@@ -172,5 +172,12 @@ pip-selfcheck.json
 
 # For VSCode
 .vscode
+
+# For sqlite db
 fileserver.db
+
+# For uploaded files
 files/
+
+#For temp folders
+instance/

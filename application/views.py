@@ -12,7 +12,7 @@ from marshmallow import ValidationError
 from passlib.hash import pbkdf2_sha256
 
 from . import authentication
-from .models import File, db
+from .models import File, db, User, UserType, FilePermission
 from .schemas import UserSchema
 from .urls import URLS
 
@@ -66,9 +66,12 @@ def upload_file():
         file_id = file.filename
         file.save(os.path.join(user_dir, file_id))
 
+        file_permission = FilePermission.query.filter_by(name='revoke').first()
+
         new_file = File(user=current_identity.id,
                         file_name=file_id,
                         file_path=client_file_path,
+                        file_access_permission=file_permission.id,
                         last_updated=datetime.utcnow())
 
         db.session.add(new_file)
@@ -76,3 +79,56 @@ def upload_file():
 
 
     return make_response(jsonify({'status':'upload complete'}), 200)
+
+
+@app.route(URLS.get('UPDATE_FILE_PERMISSION'), methods=['GET'])
+@jwt_required()
+def update_file_permissions():
+    """Endpoint to update file permissions."""
+
+    admin_users = UserType.query.filter_by(name='admin').first().users
+
+    if current_identity in admin_users:
+        return make_response(
+            {'error':'You are an admin user, admin users already have full access.'},
+            400
+        )
+
+
+    if 'fileId' not in request.json:
+        return make_response(jsonify(
+                                {'error':'"fileId" value required.'}), 400)
+    if 'userEmail' not in request.json:
+        return make_response(jsonify(
+                                {'error':'"userEmail" value required.'}), 400)
+    if 'action' not in request.json:
+        return make_response(jsonify(
+                                {'error':'"action" value required.'}), 400)
+
+
+    if not current_identity.email == request.json['userEmail']:
+        return make_response(jsonify(
+                {'error':'Email mismatch, please use your account email.'}), 400)
+
+    file = File.query.filter_by(file_name=request.json['fileId'],
+                                             user=current_identity.id).first()
+    if file is None:
+        return make_response(jsonify(
+            {'error': 'Could not find file, incorrect fileId.'}), 400)
+
+    new_permission = FilePermission.query.filter_by(
+                                        name=request.json['action']).first()
+    if new_permission is None:
+        return make_response(jsonify(
+                            {'error':'"action" value permission does not exist.'})
+                            , 400)
+
+    file.file_access_permission = new_permission.id
+
+    db.session.add(file)
+    db.session.commit()
+
+    return make_response(jsonify(
+                        {'message':'Permissions updated successfully.'}), 200)
+
+
