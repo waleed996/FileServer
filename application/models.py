@@ -29,5 +29,27 @@ class UserType(db.Model):
     """Model for user types supported by application."""
     __tablename__ = 'usertype'
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    name = db.Column(db.String, unique=True, nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True, nullable=False)
+
+
+class File(db.Model):
+    """Model for files saved by the application"""
+    __tablename__ = 'file'
+
+    id = Column(String(100), primary_key=True)
+    user = Column(Integer, ForeignKey('user.id'))
+    path = Column(String(200), unique=True, nullable=False)
+    last_updated = Column(DateTime, unique=True, nullable=False,
+                                 default=datetime.datetime.utcnow)
+
+
+class Permission(db.Model):
+    """Model for user type permissions"""
+    __tablename__ = 'permission'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_type = Column(Integer, ForeignKey('usertype.id'),
+                                nullable=False, unique=True)
+    permissions = Column(String(20), nullable=False)
+

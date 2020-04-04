@@ -172,3 +172,5 @@ pip-selfcheck.json
 
 # For VSCode
 .vscode
+fileserver.db
+files/
