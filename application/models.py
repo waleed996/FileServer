@@ -37,9 +37,10 @@ class File(db.Model):
     """Model for files saved by the application"""
     __tablename__ = 'file'
 
-    id = Column(String(100), primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     user = Column(Integer, ForeignKey('user.id'))
-    path = Column(String(200), unique=True, nullable=False)
+    file_name = Column(String(100), nullable=False)
+    file_path = Column(String(200), nullable=False)
     last_updated = Column(DateTime, unique=True, nullable=False,
                                  default=datetime.datetime.utcnow)
 

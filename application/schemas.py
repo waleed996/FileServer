@@ -6,11 +6,11 @@ from flask_marshmallow.sqla import ModelSchema
 from marshmallow import ValidationError
 from marshmallow.fields import Method
 
-from .models import User, UserType
+from .models import User, UserType, File
 
 
 class UserSchema(ModelSchema):
-    """Schema for user model"""
+    """Schema for user model."""
 
     class Meta:
         """Options for model schema."""
@@ -31,8 +31,16 @@ class UserSchema(ModelSchema):
 
 
 class UserTypeSchema(ModelSchema):
-    """Schema for usertype model"""
+    """Schema for usertype model."""
 
     class Meta:
         """Options for model schema."""
         model = UserType
+
+class FileSchema(ModelSchema):
+    """Schema for File model."""
+
+    class Meta:
+        """Options for model schema."""
+        model = File
+        exclude = ('id', 'user', 'last_updated')

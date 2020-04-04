@@ -2,6 +2,7 @@
 Application authentication module.
 """
 
+from datetime import timedelta
 from os import environ
 
 from flask import current_app as app
@@ -24,4 +25,8 @@ def identity(payload):
     return User.query.get(user_id)
 
 app.config['SECRET_KEY'] = environ.get('JWT_SECRET_KEY')
+app.config['JWT_AUTH_URL_RULE'] = environ.get('JWT_AUTH_URL_RULE')
+app.config['JWT_EXPIRATION_DELTA'] = timedelta(
+                    seconds=int(environ.get('JWT_EXPIRATION_DELTA')))
+
 jwt = JWT(app, authenticate, identity)
