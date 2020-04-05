@@ -13,13 +13,25 @@ from sqlalchemy.exc import DatabaseError
 
 from . import authentication
 from .models import File, FilePermission, UserType, db
-from .schemas import UserSchema
+from .schemas import UserSchema, UserTypeSchema
 from .urls import URLS
 
 # Create the file upload directory if not exists
 FILES_UPLOAD_DIR = os.path.join(app.instance_path,
                     '..' + os.environ.get('FILES_UPLOAD_DIRECTORY'))
 os.makedirs(FILES_UPLOAD_DIR, exist_ok=True)
+
+
+@app.route(URLS.get('GET_USER_TYPES'), methods=['GET'])
+#@jwt_required()
+def get_user_types():
+    """Endpoint to get all available user types"""
+
+    user_types = UserType.query.all()
+
+    user_type_serialized = UserTypeSchema().dump(user_types, many=True)
+
+    return make_response(jsonify({'user_types':user_type_serialized}), 200)
 
 
 @app.route(URLS.get('CREATE_USER'), methods=['POST'])
@@ -98,10 +110,6 @@ def upload_file():
             db.session.rollback()
             errors.append(repr(err))
             continue
-        except Exception as ex:
-            errors.append(repr(ex))
-            continue
-
 
     if len(errors) == 0:
         return make_response(jsonify({'message':'Upload complete',
@@ -185,8 +193,6 @@ def delete_file():
     except DatabaseError as err:
         errors.append(repr(err))
         db.session.rollback()
-    except Exception as ex:
-        errors.append(repr(ex))
 
     if len(errors) == 0:
         return make_response(jsonify(
@@ -197,6 +203,53 @@ def delete_file():
                                 {'message':'Internal Server Error.',
                                 'error':errors}),
                                  500)
+
+
+@app.route(URLS.get('UPDATE_FILE'), methods=['PATCH'])
+@jwt_required()
+def update_file():
+    """Endpoint to update the file"""
+
+    updated_file = request.files.get('updated_file', default=None)
+
+    if updated_file is None:
+        return make_response(jsonify({'error':'No file attatched'}), 400)
+
+
+    file = File.query.filter_by(file_name=updated_file.filename,
+                                user=current_identity.id,
+                                deleted=False).first()
+
+    if file is None:
+        return make_response(jsonify({'error':'No file found.'}), 400)
+
+    errors = []
+
+    try:
+        os.remove(FILES_UPLOAD_DIR + '/' + str(file.user) + '/' +
+                                         updated_file.filename)
+        updated_file.save(FILES_UPLOAD_DIR + '/' + str(file.user) + '/' +
+                                            updated_file.filename)
+
+        file.last_updated = datetime.utcnow()
+
+        db.session.add(file)
+        db.session.commit()
+
+    except DatabaseError as err:
+        errors.append(repr(err))
+        db.session.rollback()
+
+    if len(errors) == 0:
+        return make_response(jsonify(
+                                {'message':'File updated successfully.',}),
+                                 200)
+
+    return make_response(jsonify(
+                                {'message':'Internal Server Error.',
+                                'error':errors}),
+                                 500)
+
 
 
 @app.route(URLS.get('UPDATE_FILE_PERMISSION'), methods=['GET'])
@@ -211,31 +264,36 @@ def update_file_permissions():
         {'error':'Admin users have full access by default.'}, 400)
 
 
-    if 'fileId' not in request.json:
+    file_name = request.form.get('file_name', default=None)
+    user_email = request.form.get('user_email', default=None)
+    action = request.form.get('action', default=None)
+
+
+    if file_name is None:
         return make_response(jsonify(
-                                {'error':'"fileId" value required.'}), 400)
-    if 'userEmail' not in request.json:
+                                {'error':'"file_name" value required.'}), 400)
+    if user_email is None:
         return make_response(jsonify(
-                                {'error':'"userEmail" value required.'}), 400)
-    if 'action' not in request.json:
+                                {'error':'"user_email" value required.'}), 400)
+    if action is None:
         return make_response(jsonify(
                                 {'error':'"action" value required.'}), 400)
 
 
-    if not current_identity.email == request.json['userEmail']:
+    if not current_identity.email == user_email:
         return make_response(jsonify(
                 {'error':'Email mismatch, please use your account email.'}),
                  400)
 
-    file = File.query.filter_by(file_name=request.json['fileId'],
+    file = File.query.filter_by(file_name=file_name,
                                 user=current_identity.id,
                                 deleted=False).first()
     if file is None:
         return make_response(jsonify(
-            {'error': 'Could not find file, incorrect fileId.'}), 400)
+            {'error': 'Could not find file, incorrect file_name.'}), 400)
 
     new_permission = FilePermission.query.filter_by(
-                                        name=request.json['action']).first()
+                                        name=action).first()
     if new_permission is None:
         return make_response(jsonify(
                         {'error':'"action" value permission does not exist.'}),
