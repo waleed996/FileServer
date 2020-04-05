@@ -1,0 +1,363 @@
+{
+	"info": {
+		"_postman_id": "5f153d0e-96e7-4cd2-bbce-6f702baf91a5",
+		"name": "FileServerAPI",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create a user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"waleedabbasi1\",\n    \"email\": \"waleedabbasi1@gmail.com\",\n    \"password\": \"12345\",\n    \"bio\": \"waleedabbasi1 test bio\",\n    \"user_type\": \"admin\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/user",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\":\"waleedabbasi1\",\n\t\"password\":\"1234\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/auth",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"auth"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload files",
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1ODYwOTc4NDgsImlhdCI6MTU4NjA5NjA0OCwibmJmIjoxNTg2MDk2MDQ4LCJpZGVudGl0eSI6M30.DIlcG1Hgg357WZbUeVBCCv5Xny7eyrCaQF1buvxu2P8",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "Authorization",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "files",
+							"type": "file",
+							"src": [
+								"/home/waleed/Desktop/testfile1",
+								"/home/waleed/Desktop/testfile2"
+							]
+						},
+						{
+							"key": "path",
+							"value": "/test/file/path",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/user/file/upload",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"file",
+						"upload"
+					],
+					"query": [
+						{
+							"key": "files",
+							"value": null,
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update user file permissions",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1ODYwNzgyMjUsImlhdCI6MTU4NjA3NjQyNSwibmJmIjoxNTg2MDc2NDI1LCJpZGVudGl0eSI6M30.BSarXM_QacWJPv7fKbj73NQ4p7csHrh4gQTqXyWEZTc",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "Authorization",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "fileId",
+							"value": "testfile1",
+							"type": "text"
+						},
+						{
+							"key": "userEmail",
+							"value": "waleedabbasi3@gmail.com",
+							"type": "text"
+						},
+						{
+							"key": "action",
+							"value": "allow",
+							"type": "text"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:5000/user/file/permission",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"file",
+						"permission"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get/View a file",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1ODYwMzM2NTMsImlhdCI6MTU4NjAzMTg1MywibmJmIjoxNTg2MDMxODUzLCJpZGVudGl0eSI6MX0.mEytCIduIJN08RpNIXffKDN1KhtdTiRflJqpjYVcWyU",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "Authorization",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"value": "testfile1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:5000/user/file",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"file"
+					],
+					"query": [
+						{
+							"key": "file",
+							"value": "testfile1.txt",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a file",
+			"request": {
+				"auth": {
+					"type": "apikey",
+					"apikey": [
+						{
+							"key": "value",
+							"value": "JWT eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE1ODYwODc3NDYsImlhdCI6MTU4NjA4NTk0NiwibmJmIjoxNTg2MDg1OTQ2LCJpZGVudGl0eSI6M30.T0rgOv1d1pi1gFhdrAm_IfiJLLVE3RaltUxM6rRDRNk",
+							"type": "string"
+						},
+						{
+							"key": "key",
+							"value": "Authorization",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file_name",
+							"value": "testfile1",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:5000/user/file",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"file"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update a file",
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "",
+							"value": "",
+							"type": "text",
+							"disabled": true
+						},
+						{
+							"key": "updated_file",
+							"type": "file",
+							"src": "/home/waleed/Desktop/testfile2"
+						}
+					]
+				},
+				"url": {
+					"raw": "localhost:5000/user/file",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"file"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all user types",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/user/types",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"user",
+						"types"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all file permission types",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:5000/file/permissions",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"file",
+						"permissions"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"protocolProfileBehavior": {}
+}
