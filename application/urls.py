@@ -10,5 +10,6 @@ URLS = {
     'GET_FILE':'/user/file',
     'DELETE_FILE':'/user/file',
     'UPDATE_FILE':'/user/file',
-    'GET_USER_TYPES':'/user/types'
+    'GET_USER_TYPES':'/user/types',
+    'GET_FILE_PERMISSION_TYPES':'/file/permissions'
 }

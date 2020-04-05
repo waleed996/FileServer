@@ -6,7 +6,7 @@ from marshmallow import ValidationError
 from marshmallow.fields import Method
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
-from .models import File, User, UserType
+from .models import File, User, UserType, FilePermission
 
 
 class UserSchema(SQLAlchemyAutoSchema):
@@ -38,6 +38,16 @@ class UserTypeSchema(SQLAlchemyAutoSchema):
         """Options for model schema."""
         model = UserType
         load_instance = True
+
+
+class FilePermissionSchema(SQLAlchemyAutoSchema):
+    """Schema for file permission model."""
+
+    class Meta:
+        """Options for model schema."""
+        model = FilePermission
+        load_instance = True
+
 
 class FileSchema(SQLAlchemyAutoSchema):
     """Schema for File model."""

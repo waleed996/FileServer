@@ -13,7 +13,7 @@ from sqlalchemy.exc import DatabaseError
 
 from . import authentication
 from .models import File, FilePermission, UserType, db
-from .schemas import UserSchema, UserTypeSchema
+from .schemas import FilePermissionSchema, UserSchema, UserTypeSchema
 from .urls import URLS
 
 # Create the file upload directory if not exists
@@ -249,6 +249,22 @@ def update_file():
                                 {'message':'Internal Server Error.',
                                 'error':errors}),
                                  500)
+
+
+
+@app.route(URLS.get('GET_FILE_PERMISSION_TYPES'), methods=['GET'])
+#@jwt_required()
+def get_file_permission_types():
+    """Endpoint to get all available file permission types"""
+
+    file_permission_types = FilePermission.query.all()
+
+    file_permission_type_serialized = FilePermissionSchema().dump(
+                                        file_permission_types, many=True)
+
+    return make_response(jsonify(
+                    {'file_permission_types':file_permission_type_serialized})
+                    , 200)
 
 
 
