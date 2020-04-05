@@ -56,4 +56,5 @@ class FilePermission(db.Model):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(20), unique=True, nullable=False)
+    files = relationship('File')
 

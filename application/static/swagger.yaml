@@ -1,0 +1,224 @@
+openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: File Server
+  description: This is a simple File Server application with features like sign up, sign in, authentication and file permission management.
+  contact:
+    name: Waleed Abbasi
+    email: waleedabbasi996@gmail.com
+servers:
+  - url: localhost:5000
+paths:
+
+  /user:
+    post:
+      description: Creates a new user in the file server application.
+      operationId: addUser
+      requestBody:
+        description: User to create.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: New user response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+
+  /user/types:
+    get:
+      description: Lists all user types supported by the application.
+      operationId: getUserTypes
+      responses:
+        '200':
+          description: User types response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserType'
+
+
+  /user/login:
+    post:
+      description: Logs a user into the application by providing an access token.
+      operationId: logIn
+      requestBody:
+        description: Credentials to login.
+        required: true
+        content:
+          application/json:
+            schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  password:
+                    type: string
+      responses:
+        '200':
+          description: Access token response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+
+
+
+  /file/permissions:
+    get:
+      description: Lists all file permissions currently in the application.
+      operationId: getPermissionTypes
+      responses:
+        '200':
+          description: Permission type response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FilePermission'
+
+
+
+
+  /user/files/upload:
+    post:
+      description: Uploads a new file to the server for the logged in user.
+      operationId: uploadFile
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+            # a binary file of any type
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: New user response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+
+
+  /user/file:
+    get:
+      description: Gets the contents of the file.
+      operationId: getFile
+      responses:
+        '200':
+          description: File content response
+          content:
+            application/octet-stream:
+              schema:
+                # a binary file of any type
+                type: string
+                format: binary
+
+
+  /user/file:
+    patch:
+      description: Updates file for the current user.
+      operationId: updateFile
+      requestBody:
+        content:
+          application/octet-stream:
+            schema:
+            # a binary file of any type
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: File updation status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+
+  /user/file:
+    delete:
+      description: Deletes the file for current user.
+      operationId: updateFile
+
+
+  /user/file/permission:
+    patch:
+      description: Updates file permissions for other users
+      operationId: updateFilePermission
+
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - username
+        - password
+        - email
+        - bio
+        - user_type
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        password:
+          type: string
+        email:
+          type: string
+        bio:
+          type: string
+        created_at:
+          type: integer
+        user_type:
+          type: string
+
+    UserType:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+
+    File:
+      type: object
+      properties:
+        id:
+          type: integer
+        user:
+          type: string
+        file_name:
+          type: string
+        file_path:
+          type: string
+        file_access_permission:
+          type: string
+        last_updated:
+          type: string
+        deleted:
+          type: boolean
+
+
+    FilePermission:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+

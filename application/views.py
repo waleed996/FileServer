@@ -156,6 +156,13 @@ def get_file():
     file = File.query.filter_by(file_name=file_name, user=current_identity.id,
                                 deleted=False).first()
 
+    # Searching public files with permission 'allow'
+    public_files = FilePermission.query.filter_by(name='allow').files
+
+    for public_file in public_files:
+        if public_file.file_name == file_name:
+            return send_file(FILES_UPLOAD_DIR + '/' + public_file.user + '/' + file_name)
+
     if file is None:
         return make_response(jsonify(
                 {'error':'User does not have any file with provided name'})
@@ -268,7 +275,7 @@ def get_file_permission_types():
 
 
 
-@app.route(URLS.get('UPDATE_FILE_PERMISSION'), methods=['GET'])
+@app.route(URLS.get('UPDATE_FILE_PERMISSION'), methods=['PATCH'])
 @jwt_required()
 def update_file_permissions():
     """Endpoint to update file permissions."""

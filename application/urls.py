@@ -6,7 +6,7 @@ URLS = {
     'LOGIN':'/user/login',
     'CREATE_USER':'/user',
     'UPDATE_FILE_PERMISSION':'/user/file/permission',
-    'UPLOAD_FILE':'/user/files/upload',
+    'UPLOAD_FILE':'/user/file/upload',
     'GET_FILE':'/user/file',
     'DELETE_FILE':'/user/file',
     'UPDATE_FILE':'/user/file',
