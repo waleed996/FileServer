@@ -157,11 +157,11 @@ def get_file():
                                 deleted=False).first()
 
     # Searching public files with permission 'allow'
-    public_files = FilePermission.query.filter_by(name='allow').files
+    public_files = FilePermission.query.filter_by(name='allow').first().files
 
     for public_file in public_files:
         if public_file.file_name == file_name:
-            return send_file(FILES_UPLOAD_DIR + '/' + public_file.user + '/' + file_name)
+            return send_file(FILES_UPLOAD_DIR + '/' + str(public_file.user) + '/' + file_name)
 
     if file is None:
         return make_response(jsonify(
@@ -280,11 +280,11 @@ def get_file_permission_types():
 def update_file_permissions():
     """Endpoint to update file permissions."""
 
-    admin_users = UserType.query.filter_by(name='admin').first().users
+#    admin_users = UserType.query.filter_by(name='admin').first().users
 
-    if current_identity in admin_users:
-        return make_response(
-        {'error':'Admin users have full access by default.'}, 400)
+#    if current_identity in admin_users:
+#        return make_response(
+#        {'error':'Admin users have full access by default.'}, 400)
 
 
     file_name = request.form.get('file_name', default=None)
