@@ -4,7 +4,7 @@ Models for the application.
 
 import datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Boolean
 from sqlalchemy.orm import relationship
 
 from . import db
@@ -47,6 +47,7 @@ class File(db.Model):
                         ForeignKey('file_permission.id'), nullable=False)
     last_updated = Column(DateTime, unique=True, nullable=False,
                                  default=datetime.datetime.utcnow)
+    deleted = Column(Boolean, default=False)
 
 
 class FilePermission(db.Model):

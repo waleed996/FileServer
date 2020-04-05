@@ -6,13 +6,13 @@ import os
 from datetime import datetime
 
 from flask import current_app as app
-from flask import jsonify, make_response, request
+from flask import jsonify, make_response, request, send_file
 from flask_jwt import current_identity, jwt_required
-from marshmallow import ValidationError
 from passlib.hash import pbkdf2_sha256
+from sqlalchemy.exc import DatabaseError
 
 from . import authentication
-from .models import File, db, User, UserType, FilePermission
+from .models import File, FilePermission, UserType, db
 from .schemas import UserSchema
 from .urls import URLS
 
@@ -27,14 +27,17 @@ def create_user():
     """Endpoint to create a user"""
     try:
         schema = UserSchema()
-        new_user = schema.load(request.json)
+        new_user = schema.load(request.json, session=db.session)
         new_user.password = pbkdf2_sha256.hash(new_user.password)
 
         db.session.add(new_user)
         db.session.commit()
         return jsonify(schema.dump(new_user))
-    except ValidationError as err:
-        return make_response(err.messages, 400)
+    except DatabaseError as err:
+        db.session.rollback()
+        return make_response(jsonify({
+            'error':repr(err)
+        }), 400)
 
 
 
@@ -57,28 +60,143 @@ def upload_file():
         return make_response(jsonify({'error':'no file attatched'}), 400)
 
 
-    user_dir = FILES_UPLOAD_DIR + '/' +str(current_identity.id)
+    user_dir = FILES_UPLOAD_DIR + '/' + str(current_identity.id)
     os.makedirs(user_dir, exist_ok=True)
 
+    messages = []
+    errors = []
 
     for file in request.files.getlist('files'):
 
-        file_id = file.filename
-        file.save(os.path.join(user_dir, file_id))
+        # Check if file already exists
+        check_file = File.query.filter_by(file_name=file.filename,
+                                          user=current_identity.id,
+                                          deleted=False).first()
 
-        file_permission = FilePermission.query.filter_by(name='revoke').first()
+        if not check_file is None:
+            messages.append(f' {check_file.file_name} already uploaded.')
+            continue
 
-        new_file = File(user=current_identity.id,
-                        file_name=file_id,
-                        file_path=client_file_path,
-                        file_access_permission=file_permission.id,
-                        last_updated=datetime.utcnow())
+        try:
 
-        db.session.add(new_file)
+            file_id = file.filename
+            file.save(os.path.join(user_dir, file_id))
+
+            file_permission = FilePermission.query.filter_by(
+                                                   name='revoke').first()
+
+            new_file = File(user=current_identity.id,
+                            file_name=file_id,
+                            file_path=client_file_path,
+                            file_access_permission=file_permission.id,
+                            last_updated=datetime.utcnow())
+
+            db.session.add(new_file)
+            db.session.commit()
+
+        except DatabaseError as err:
+            db.session.rollback()
+            errors.append(repr(err))
+            continue
+        except Exception as ex:
+            errors.append(repr(ex))
+            continue
+
+
+    if len(errors) == 0:
+        return make_response(jsonify({'message':'Upload complete',
+                                      'info':messages,}), 200)
+
+    return make_response(jsonify({'message':'Internal Server Error',
+                                  'info':messages,
+                                  'error':errors}), 500)
+
+
+@app.route(URLS.get('GET_FILE'), methods=['GET'])
+@jwt_required()
+def get_file():
+    """Endpoint for user to view/download file."""
+
+    user_dir = FILES_UPLOAD_DIR + '/' + str(current_identity.id)
+
+    file_name = request.form.get('file', default=None)
+    if file_name is None:
+        return make_response(jsonify({'error':'No file name provided'}), 400)
+
+
+    admin_users = UserType.query.filter_by(name='admin').first().users
+
+    if current_identity in admin_users:
+
+        user = request.form.get('user', default=None)
+        if user is None:
+            return make_response(jsonify(
+                {'error':'"user" id required.'})
+                , 400)
+
+        file = File.query.filter_by(file_name=file_name, user=user,
+                                    deleted=False).first()
+        if file is None:
+            return make_response(jsonify(
+                {'error':'No file found.'})
+                , 400)
+
+        return send_file(FILES_UPLOAD_DIR + '/' + str(file.user) + '/' +
+                        file_name)
+
+
+    file = File.query.filter_by(file_name=file_name, user=current_identity.id,
+                                deleted=False).first()
+
+    if file is None:
+        return make_response(jsonify(
+                {'error':'User does not have any file with provided name'})
+                , 400)
+
+    return send_file(user_dir + '/' + file_name)
+
+
+@app.route(URLS.get('DELETE_FILE'), methods=['DELETE'])
+@jwt_required()
+def delete_file():
+    """Endpoint to delete a file."""
+
+    file_name = request.form.get('file_name', default=None)
+    if file_name is None:
+        return make_response(jsonify(
+                                {'error':'"file_name" value required.'}), 400)
+
+    file = File.query.filter_by(file_name=file_name, user=current_identity.id,
+                                deleted=False).first()
+
+    if file is None:
+        return make_response(jsonify(
+                                {'error':'File not found.'}), 400)
+
+    errors = []
+
+    try:
+        os.remove(FILES_UPLOAD_DIR + '/' + str(file.user) + '/' + file_name)
+
+        file.deleted = True
+        db.session.add(file)
         db.session.commit()
 
+    except DatabaseError as err:
+        errors.append(repr(err))
+        db.session.rollback()
+    except Exception as ex:
+        errors.append(repr(ex))
 
-    return make_response(jsonify({'status':'upload complete'}), 200)
+    if len(errors) == 0:
+        return make_response(jsonify(
+                                {'message':'File deleted successfully.',}),
+                                 200)
+
+    return make_response(jsonify(
+                                {'message':'Internal Server Error.',
+                                'error':errors}),
+                                 500)
 
 
 @app.route(URLS.get('UPDATE_FILE_PERMISSION'), methods=['GET'])
@@ -90,9 +208,7 @@ def update_file_permissions():
 
     if current_identity in admin_users:
         return make_response(
-            {'error':'You are an admin user, admin users already have full access.'},
-            400
-        )
+        {'error':'Admin users have full access by default.'}, 400)
 
 
     if 'fileId' not in request.json:
@@ -108,10 +224,12 @@ def update_file_permissions():
 
     if not current_identity.email == request.json['userEmail']:
         return make_response(jsonify(
-                {'error':'Email mismatch, please use your account email.'}), 400)
+                {'error':'Email mismatch, please use your account email.'}),
+                 400)
 
     file = File.query.filter_by(file_name=request.json['fileId'],
-                                             user=current_identity.id).first()
+                                user=current_identity.id,
+                                deleted=False).first()
     if file is None:
         return make_response(jsonify(
             {'error': 'Could not find file, incorrect fileId.'}), 400)
@@ -120,8 +238,8 @@ def update_file_permissions():
                                         name=request.json['action']).first()
     if new_permission is None:
         return make_response(jsonify(
-                            {'error':'"action" value permission does not exist.'})
-                            , 400)
+                        {'error':'"action" value permission does not exist.'}),
+                         400)
 
     file.file_access_permission = new_permission.id
 
@@ -130,5 +248,3 @@ def update_file_permissions():
 
     return make_response(jsonify(
                         {'message':'Permissions updated successfully.'}), 200)
-
-

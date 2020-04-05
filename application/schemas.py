@@ -2,20 +2,21 @@
 Schemas for serializing and deserializing.
 """
 
-from flask_marshmallow.sqla import ModelSchema
 from marshmallow import ValidationError
 from marshmallow.fields import Method
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
-from .models import User, UserType, File
+from .models import File, User, UserType
 
 
-class UserSchema(ModelSchema):
+class UserSchema(SQLAlchemyAutoSchema):
     """Schema for user model."""
 
     class Meta:
         """Options for model schema."""
         model = User
         exclude = ('id', 'created_at')
+        load_instance = True
 
     user_type = Method(deserialize='usertype_name_to_id')
 
@@ -30,17 +31,19 @@ class UserSchema(ModelSchema):
         return usertype.id
 
 
-class UserTypeSchema(ModelSchema):
+class UserTypeSchema(SQLAlchemyAutoSchema):
     """Schema for usertype model."""
 
     class Meta:
         """Options for model schema."""
         model = UserType
+        load_instance = True
 
-class FileSchema(ModelSchema):
+class FileSchema(SQLAlchemyAutoSchema):
     """Schema for File model."""
 
     class Meta:
         """Options for model schema."""
         model = File
         exclude = ('id', 'user', 'last_updated')
+        load_instance = True
