@@ -22,7 +22,6 @@ def create_app():
         # Create tables for the models.
         db.create_all()
 
-        print(app.instance_path)
         ### swagger specific ###
         SWAGGER_URL = '/swagger'
         API_URL = '/static/swagger.yaml'
