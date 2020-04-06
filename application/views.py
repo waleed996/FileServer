@@ -280,13 +280,6 @@ def get_file_permission_types():
 def update_file_permissions():
     """Endpoint to update file permissions."""
 
-#    admin_users = UserType.query.filter_by(name='admin').first().users
-
-#    if current_identity in admin_users:
-#        return make_response(
-#        {'error':'Admin users have full access by default.'}, 400)
-
-
     file_name = request.form.get('file_name', default=None)
     user_email = request.form.get('user_email', default=None)
     action = request.form.get('action', default=None)

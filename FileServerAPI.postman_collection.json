@@ -6,7 +6,7 @@
 	},
 	"item": [
 		{
-			"name": "Create a user",
+			"name": "Sign up",
 			"request": {
 				"method": "POST",
 				"header": [],
@@ -28,7 +28,8 @@
 					"path": [
 						"user"
 					]
-				}
+				},
+				"description": "This request creates a user in the file server application. The username and password used here are required for sign in."
 			},
 			"response": []
 		},
@@ -55,7 +56,8 @@
 					"path": [
 						"auth"
 					]
-				}
+				},
+				"description": "Login request for file server users. This request takes username and password of the user and returns an access token, which is then required in every request. The access token expires in 30 mins by default(can be configured from start.sh shell script)."
 			},
 			"response": []
 		},
@@ -120,7 +122,8 @@
 							"disabled": true
 						}
 					]
-				}
+				},
+				"description": "Request for user to upload files. The user can upload multiple files by using the key specified in the body (form data)."
 			},
 			"response": []
 		},
@@ -183,7 +186,8 @@
 						"file",
 						"permission"
 					]
-				}
+				},
+				"description": "This request updates a users file permissions. After permission is updated it can be verifies through get file request.\nNote: When the permission of a file is updated it can only be viewed by other users."
 			},
 			"response": []
 		},
@@ -237,7 +241,8 @@
 							"disabled": true
 						}
 					]
-				}
+				},
+				"description": "Request to get the contents of users file. The user is identified through the token provided in authorization against api key.\nUser can get his own file and public files, whose permission was updated to allow using update permissions endpoint."
 			},
 			"response": []
 		},
@@ -281,7 +286,8 @@
 						"user",
 						"file"
 					]
-				}
+				},
+				"description": "This request deletes users file. User must have ownership of file."
 			},
 			"response": []
 		},
@@ -316,7 +322,8 @@
 						"user",
 						"file"
 					]
-				}
+				},
+				"description": "This request updates the content of his file."
 			},
 			"response": []
 		},
@@ -335,7 +342,8 @@
 						"user",
 						"types"
 					]
-				}
+				},
+				"description": "This request fethes a list of all possible user types that can be used at sign up time when creating a user. (token not required)"
 			},
 			"response": []
 		},
@@ -354,7 +362,8 @@
 						"file",
 						"permissions"
 					]
-				}
+				},
+				"description": "This request fethes a list of all possible user file permissisons that can be used in the update file permissions request. (token not required)"
 			},
 			"response": []
 		}
