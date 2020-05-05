@@ -181,8 +181,26 @@ def delete_file():
         return make_response(jsonify(
                                 {'error':'"file_name" value required.'}), 400)
 
-    file = File.query.filter_by(file_name=file_name, user=current_identity.id,
-                                deleted=False).first()
+
+    admin_users = UserType.query.filter_by(name='admin').first().users
+
+    file = None
+    if current_identity in admin_users:
+
+        user = request.form.get('user', default=None)
+        if user is None:
+            return make_response(jsonify(
+                {'error':'"user" id required.'})
+                , 400)
+
+        file = File.query.filter_by(file_name=file_name, user=user,
+                                    deleted=False).first()
+
+    else:
+        file = File.query.filter_by(file_name=file_name,
+                                    user=current_identity.id,
+                                    deleted=False).first()
+
 
     if file is None:
         return make_response(jsonify(
@@ -223,9 +241,25 @@ def update_file():
         return make_response(jsonify({'error':'No file attatched'}), 400)
 
 
-    file = File.query.filter_by(file_name=updated_file.filename,
-                                user=current_identity.id,
-                                deleted=False).first()
+    admin_users = UserType.query.filter_by(name='admin').first().users
+
+    file = None
+    if current_identity in admin_users:
+
+        user = request.form.get('user', default=None)
+        if user is None:
+            return make_response(jsonify(
+                {'error':'"user" id required.'})
+                , 400)
+
+        file = File.query.filter_by(file_name=updated_file.filename, user=user,
+                                    deleted=False).first()
+
+    else:
+        file = File.query.filter_by(file_name=updated_file.filename,
+                                    user=current_identity.id,
+                                    deleted=False).first()
+
 
     if file is None:
         return make_response(jsonify({'error':'No file found.'}), 400)
